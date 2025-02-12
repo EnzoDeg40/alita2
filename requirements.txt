@@ -1,4 +1,14 @@
+# ollama
 streamlit
 langchain_core
 langchain_community
 langchain_ollama
+
+# vector
+faiss-cpu
+sentence-transformers
+numpy
+
+
+matplotlib
+scikit-learn
