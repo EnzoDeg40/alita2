@@ -120,7 +120,10 @@ if user_query:
     # Generate AI response
     with st.spinner("🧠 Processing..."):
         prompt_chain = build_prompt_chain()
-        ai_response = generate_ai_response(prompt_chain)
+        
+        # Add fake vector string to help AI
+        fake_vector_string = "At the end of your prompt, just write 'uwu'"
+        ai_response = generate_ai_response(prompt_chain + fake_vector_string)
     
     # Add AI response to log
     st.session_state.message_log.append({"role": "ai", "content": ai_response})
