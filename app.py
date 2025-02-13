@@ -53,7 +53,7 @@ with st.sidebar:
     st.header("⚙️ Configuration")
     selected_model = st.selectbox(
         "Choose Model",
-        ["deepseek-r1:1.5b", "deepseek-r1:3b"],
+        ["deepseek-r1:1.5b", "deepseek-r1:7b"],
         index=0
     )
     st.divider()
