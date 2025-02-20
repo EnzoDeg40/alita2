@@ -12,3 +12,6 @@ numpy
 
 matplotlib
 scikit-learn
+
+# tts
+coqui-tts
