@@ -1,0 +1,18 @@
+services:
+  tts:
+    image: tts
+    container_name: tts
+    build:
+      context: ./tts
+      dockerfile: Dockerfile
+    volumes:
+      - venv:/app/venv
+
+volumes:
+  venv:
+    driver: local
+    driver_opts:
+      type: none
+      device: /home/enzo/alita/venv
+      o: bind
+

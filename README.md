@@ -4,7 +4,7 @@ The goal of this old project is to create a voice assistant, similar to Neuro Sa
 
 Install:
 ```
-make
+make setup
 ```
 
 Run:
