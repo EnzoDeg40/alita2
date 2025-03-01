@@ -24,5 +24,7 @@ fi
 # Activate the virtual environment
 source /app/venv/bin/activate
 
+export COQUI_TOS_AGREED=1
+
 # Run the Python script
 python -u /app/main.py
