@@ -1,0 +1,4 @@
+pillow
+transformers
+torch
+qdrant-client
