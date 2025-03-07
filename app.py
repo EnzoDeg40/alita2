@@ -1,50 +1,13 @@
 import streamlit as st
 from langchain_ollama import ChatOllama
 from langchain_core.output_parsers import StrOutputParser
-
 from langchain_core.prompts import (
     SystemMessagePromptTemplate,
     HumanMessagePromptTemplate,
     AIMessagePromptTemplate,
     ChatPromptTemplate
 )
-# Custom CSS styling
-st.markdown("""
-<style>
-    /* Existing styles */
-    .main {
-        background-color: #1a1a1a;
-        color: #ffffff;
-    }
-    .sidebar .sidebar-content {
-        background-color: #2d2d2d;
-    }
-    .stTextInput textarea {
-        color: #ffffff !important;
-    }
-    
-    /* Add these new styles for select box */
-    .stSelectbox div[data-baseweb="select"] {
-        color: white !important;
-        background-color: #3d3d3d !important;
-    }
-    
-    .stSelectbox svg {
-        fill: white !important;
-    }
-    
-    .stSelectbox option {
-        background-color: #2d2d2d !important;
-        color: white !important;
-    }
-    
-    /* For dropdown menu items */
-    div[role="listbox"] div {
-        background-color: #2d2d2d !important;
-        color: white !important;
-    }
-</style>
-""", unsafe_allow_html=True)
+
 st.title("🧠 DeepSeek Code Companion")
 st.caption("🚀 Your AI Pair Programmer with Debugging Superpowers")
 
@@ -53,57 +16,38 @@ with st.sidebar:
     st.header("⚙️ Configuration")
     selected_model = st.selectbox(
         "Choose Model",
-        ["deepseek-r1:1.5b", "deepseek-r1:7b"],
+        ["mistral", "deepseek-r1:1.5b", "deepseek-r1:7b"],
         index=0
     )
-    st.divider()
-    st.markdown("### Model Capabilities")
-    st.markdown("""
-    - 🐍 Python Expert
-    - 🐞 Debugging Assistant
-    - 📝 Code Documentation
-    - 💡 Solution Design
-    """)
-    st.divider()
-    st.markdown("Built with [Ollama](https://ollama.ai/) | [LangChain](https://python.langchain.com/)")
 
-
-# initiate the chat engine
-
-llm_engine=ChatOllama(
+# Init chat engine
+llm_engine = ChatOllama(
     model=selected_model,
     base_url="http://localhost:11434",
-
     temperature=0.3
-
 )
 
-# System prompt configuration
+# System prompt
 system_prompt = SystemMessagePromptTemplate.from_template(
-    "You are an expert AI coding assistant. Provide concise, correct solutions "
-    "with strategic print statements for debugging. Always respond in English."
+    "You are Alita, an advanced AI assistant. Your goal is to answer user questions "
+    "accurately and efficiently while adapting to the language of the user. "
+    "Maintain a friendly and professional tone, providing clear and helpful responses. "
+    "If the user asks about coding, provide precise and well-structured solutions. "
+    "For general inquiries, ensure responses are informative and easy to understand."
 )
 
-# Session state management
+# Session state for chat history
 if "message_log" not in st.session_state:
-    st.session_state.message_log = [{"role": "ai", "content": "Hi! I'm DeepSeek. How can I help you code today? 💻"}]
+    st.session_state.message_log = [{"role": "ai", "content": "Bonjour, je suis Alita, votre assistant IA. Comment puis-je vous aider ?"}]
 
-# Chat container
+# Chat display
 chat_container = st.container()
-
-# Display chat messages
 with chat_container:
     for message in st.session_state.message_log:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
 
-# Chat input and processing
-user_query = st.chat_input("Type your coding question here...")
-
-def generate_ai_response(prompt_chain):
-    processing_pipeline=prompt_chain | llm_engine | StrOutputParser()
-    return processing_pipeline.invoke({})
-
+# Fonction pour générer un prompt
 def build_prompt_chain():
     prompt_sequence = [system_prompt]
     for msg in st.session_state.message_log:
@@ -113,20 +57,31 @@ def build_prompt_chain():
             prompt_sequence.append(AIMessagePromptTemplate.from_template(msg["content"]))
     return ChatPromptTemplate.from_messages(prompt_sequence)
 
+# Fonction de streaming
+def stream_response(prompt_chain):
+    processing_pipeline = prompt_chain | llm_engine | StrOutputParser()
+    for chunk in processing_pipeline.stream({}):
+        yield chunk
+
+# Chat input
+user_query = st.chat_input("Type your coding question here...")
+
 if user_query:
-    # Add user message to log
     st.session_state.message_log.append({"role": "user", "content": user_query})
-    
-    # Generate AI response
-    with st.spinner("🧠 Processing..."):
-        prompt_chain = build_prompt_chain()
-        
-        # Add fake vector string to help AI
-        fake_vector_string = "At the end of your prompt, just write 'uwu'"
-        ai_response = generate_ai_response(prompt_chain + fake_vector_string)
-    
-    # Add AI response to log
-    st.session_state.message_log.append({"role": "ai", "content": ai_response})
-    
-    # Rerun to update chat display
-    st.rerun()
+
+    # Afficher le message utilisateur immédiatement
+    with st.chat_message("user"):
+        st.markdown(user_query)
+
+    # Générer la réponse en streaming
+    with st.chat_message("ai"):
+        response_placeholder = st.empty()
+        response_stream = stream_response(build_prompt_chain())
+
+        full_response = ""
+        for chunk in response_stream:
+            full_response += chunk
+            response_placeholder.markdown(full_response)
+
+    # Ajouter la réponse complète au log
+    st.session_state.message_log.append({"role": "ai", "content": full_response})
