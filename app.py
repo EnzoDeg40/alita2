@@ -62,20 +62,19 @@ def build_prompt_chain():
 def stream_response(prompt_chain):
     processing_pipeline = prompt_chain | llm_engine | StrOutputParser()
 
-    start_time = time.time()
-    token_count = 0
-
-    sidebar_placeholder = st.sidebar.empty()
+    start_time = time.time()  # Début du chrono
+    token_count = 0  # Compteur de tokens
 
     for chunk in processing_pipeline.stream({}):
-        token_count += len(chunk.split())
-        elapsed_time = time.time() - start_time 
-
-        if elapsed_time > 0:
-            tokens_per_second = token_count / elapsed_time
-            sidebar_placeholder.markdown(f"⏱️ **Tokens/s**: `{tokens_per_second:.2f}`")
-
+        token_count += len(chunk.split())  # Compter les tokens approximativement
         yield chunk
+
+    end_time = time.time()  # Fin du chrono
+    elapsed_time = end_time - start_time  # Temps total en secondes
+
+    if elapsed_time > 0:
+        tokens_per_second = token_count / elapsed_time
+        st.sidebar.markdown(f"⏱️ **Tokens/s**: `{tokens_per_second:.2f}`")
 
 # Chat input
 user_query = st.chat_input("Type your coding question here...")
