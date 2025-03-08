@@ -7,6 +7,7 @@ from langchain_core.prompts import (
     AIMessagePromptTemplate,
     ChatPromptTemplate
 )
+import time
 
 st.title("🧠 DeepSeek Code Companion")
 st.caption("🚀 Your AI Pair Programmer with Debugging Superpowers")
@@ -60,7 +61,20 @@ def build_prompt_chain():
 # Fonction de streaming
 def stream_response(prompt_chain):
     processing_pipeline = prompt_chain | llm_engine | StrOutputParser()
+
+    start_time = time.time()
+    token_count = 0
+
+    sidebar_placeholder = st.sidebar.empty()
+
     for chunk in processing_pipeline.stream({}):
+        token_count += len(chunk.split())
+        elapsed_time = time.time() - start_time 
+
+        if elapsed_time > 0:
+            tokens_per_second = token_count / elapsed_time
+            sidebar_placeholder.markdown(f"⏱️ **Tokens/s**: `{tokens_per_second:.2f}`")
+
         yield chunk
 
 # Chat input
